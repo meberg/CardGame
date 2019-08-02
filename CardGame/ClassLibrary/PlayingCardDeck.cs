@@ -63,6 +63,22 @@ namespace CardGame.ClassLibrary
             }
         }
 
+        public void Shuffle()
+        {
+            List<PlayingCard> newDeck = new List<PlayingCard>();
+            Random random = new Random();
+
+            for (int i = PlayingCards.Count; i > 0; i--)
+            {
+                int randomNum = random.Next(i);
+                newDeck.Add(PlayingCards[randomNum]);
+                PlayingCards.RemoveAt(randomNum);
+            }
+
+            PlayingCards = newDeck;
+        }
+
+
         // Lets you use a foreach-loop over the deck
         public IEnumerator<PlayingCard> GetEnumerator()
         {

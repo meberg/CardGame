@@ -7,11 +7,13 @@ namespace CardGame.Games
 {
     public class HigherOrLower
     {
+        public static readonly int Id = 1;
+
         ConsoleHelper ch = new ConsoleHelper();
         PlayingCardPrinter pcp = new PlayingCardPrinter();
         int score = 0;
 
-        string player = MainApp.user;
+        string player = MainApp.currentUser.Username;
 
         public void Run()
         {

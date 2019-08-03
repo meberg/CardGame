@@ -1,4 +1,5 @@
 ﻿using CardGame.ClassLibrary;
+using CardGame.Data;
 using CardGame.Games;
 using CardGame.TestClasses;
 using System;
@@ -10,9 +11,11 @@ namespace CardGame
 {
     internal class MainApp
     {
+        GameContext context = new GameContext();
+        DataAccess dataAccess = new DataAccess();
+
         ConsoleHelper ch = new ConsoleHelper();
-        public static string user = "Unknown";
-        static string pass = "";
+        public static User currentUser = new User() { Username = "Tester", Password = "UnKnown", AccountCreationDate = DateTime.Now };
 
         public MainApp()
         {
@@ -31,8 +34,7 @@ namespace CardGame
                 Console.WriteLine("a) Log in");
                 Console.WriteLine("b) Log out (Not implemented)");
                 Console.WriteLine("c) Display username and password");
-
-
+                Console.WriteLine("d) Create new account");
                 Console.WriteLine("f) Play a game");
 
                 Console.WriteLine("x) Quit");
@@ -48,9 +50,10 @@ namespace CardGame
                     case ConsoleKey.B:
                         break;
                     case ConsoleKey.C:
-                        DisplayUsernameAndPassword();
+                        DisplayAccountInfo();
                         break;
                     case ConsoleKey.D:
+                        CreateNewAccount();
                         break;
                     case ConsoleKey.E:
                         break;
@@ -58,6 +61,7 @@ namespace CardGame
                         PlayGameMenu();
                         break;
                     case ConsoleKey.X:
+                        Console.Clear();
                         Console.WriteLine("Are you sure you want to quit? [Y/N]");
 
                         ConsoleKey key1 = Console.ReadKey(true).Key;
@@ -66,6 +70,7 @@ namespace CardGame
                         {
                             Console.WriteLine("Quitting program...");
                             Thread.Sleep(1500);
+                            Console.WriteLine();
                             Environment.Exit(0);
                             break;
                         }
@@ -78,11 +83,116 @@ namespace CardGame
 
         }
 
-        private void DisplayUsernameAndPassword()
+        private void CreateNewAccount()
+        {
+            string userName = CreateUsername();
+            if (userName == null)
+            {
+                return;
+            }
+            string passWord = CreatePassword(userName);
+
+            bool done = false;
+
+            while (!done)
+            {
+                Console.WriteLine();
+                Console.WriteLine($"Save username \"{userName}\" and password? [Y/N]");
+
+                ConsoleKey key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.Y:
+                        done = true;
+                        User user = dataAccess.CreateUser(userName, passWord);
+                        currentUser = user;
+                        Console.WriteLine($"User \"{userName}\" created.");
+                        ch.PressKeyToContinue();
+                        break;
+                    case ConsoleKey.N:
+                        done = true;
+                        break;
+                    default:
+                        ch.Red("Press \"y\" or \"n\".");
+                        ch.BlankLine();
+                        break;
+                }
+            }
+        }
+
+        // FUNCTIONAL Make CheckIfValidPassword(string password)-method
+        private string CreatePassword(string userName)
+        {
+            string passWord = "";
+
+            do
+            {
+                Console.Clear();
+                Console.Write("Username: ");
+                Console.WriteLine(userName);
+                Console.Write("Password: ");
+                foreach (var letter in passWord)
+                {
+                    Console.Write("*");
+                }
+
+                char key = Console.ReadKey(true).KeyChar;
+
+                if (key == 13)
+                {
+                    break;
+                }
+                if (key == 8)
+                {
+                    passWord = passWord.Substring(0, passWord.Length - 1);
+                }
+                else
+                {
+                    passWord = passWord + key.ToString();
+                }
+            } while (true);
+
+            return passWord;
+        }
+
+        // DONE
+        private string CreateUsername()
+        {
+            bool invalidUsername = true;
+            string userName;
+
+            do
+            {
+                Console.Clear();
+                Console.Write("Username: ");
+                userName = Console.ReadLine();
+                if (userName == "")
+                {
+                    return null;
+                }
+                if (dataAccess.DoesUserExist(userName))
+                {
+                    Console.WriteLine("Username already exists, try a new one");
+                    ch.PressKeyToContinue();
+                }
+                else
+                {
+                    invalidUsername = false;
+                }
+
+            } while (invalidUsername);
+
+            return userName;
+        }
+
+        // DONE
+        private void DisplayAccountInfo()
         {
             Console.Clear();
-            Console.WriteLine("Username: " + user);
-            Console.WriteLine("Password: " + pass);
+            Console.WriteLine("Username: " + currentUser?.Username);
+            Console.WriteLine("Password: " + currentUser?.Password);
+            Console.WriteLine($"Account created: {currentUser?.AccountCreationDate:F}");
             ch.PressKeyToContinue();
         }
 
@@ -124,34 +234,10 @@ namespace CardGame
 
             bool done = false;
 
-            while (!done)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Save username and password? [Y/N]");
-
-                ConsoleKey key = Console.ReadKey().Key;
-
-                switch (key)
-                {
-                    case ConsoleKey.Y:
-                        done = true;
-                        user = userName;
-                        pass = passWord;
-                        break;
-                    case ConsoleKey.N:
-                        done = true;
-                        break;
-                    default:
-                        ch.Red("Press \"y\" or \"n\".");
-                        ch.BlankLine();
-                        break;
-                }
-            }
-
-            
-
+           
         }
 
+        // FUNCTIONAL
         private void PlayGameMenu()
         {
             bool keepGoing = true;

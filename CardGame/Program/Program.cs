@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CardGame.Data;
+using System;
 
 namespace CardGame
 {

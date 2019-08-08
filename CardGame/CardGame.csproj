@@ -6,6 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Migrations\20190803132410_initial.cs" />
+    <Compile Remove="Data\Migrations\20190803132410_initial.Designer.cs" />
+    <Compile Remove="Data\Migrations\20190807104530_addedIdToUserScore.cs" />
+    <Compile Remove="Data\Migrations\20190807104530_addedIdToUserScore.Designer.cs" />
+    <Compile Remove="Data\Migrations\20190807105937_test.cs" />
+    <Compile Remove="Data\Migrations\20190807105937_test.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="SqlFiles\" />
   </ItemGroup>
 

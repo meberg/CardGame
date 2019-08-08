@@ -1,4 +1,5 @@
 ﻿using CardGame.ClassLibrary;
+using CardGame.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,10 +8,11 @@ namespace CardGame.Games
 {
     public class HigherOrLower
     {
-        public static readonly int Id = 1;
+        public static readonly int GameId = 1;
 
         ConsoleHelper ch = new ConsoleHelper();
         PlayingCardPrinter pcp = new PlayingCardPrinter();
+        DataAccess dataAccess = new DataAccess();
         int score = 0;
 
         string player = MainApp.currentUser.Username;
@@ -84,6 +86,8 @@ namespace CardGame.Games
 
         private void PlayGame()
         {
+            score = 0;
+
             deck = new PlayingCardDeck();
             deck.Shuffle();
             bool done = false;
@@ -144,7 +148,6 @@ namespace CardGame.Games
                 if (!done)
                 {
                     Console.Clear();
-
                     Console.WriteLine("Computer:");
                     pcp.PrintCard(computerCard);
                     Console.WriteLine("Player:");
@@ -160,26 +163,37 @@ namespace CardGame.Games
                         Console.WriteLine("Incorrect guess");
                     }
                     Console.WriteLine("Your guess: " + userGuess);
-
-
                     Console.WriteLine("Score: " + score);
                     Console.WriteLine("Cards left in deck: " + deck.Length);
 
                     if (deck.Length == 0)
                     {
                         done = true;
+                        ch.PressKeyToContinue();
                         Console.Clear();
                         Console.WriteLine("Game over!");
                         Console.WriteLine("You got " + score + " points out of 26 possible");
+
+                        if (MainApp.isLoggedIn)
+                        {
+                            int highscore = dataAccess.GetHighScore(MainApp.currentUser, GameId);
+
+                            if (score > highscore)
+                            {
+                                dataAccess.SetNewHighscore(score, MainApp.currentUser, GameId);
+                                Console.WriteLine();
+                                Console.WriteLine($"New highscore! Your previous highscore was {highscore} points.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Too bad, you didn't beat your highscore. Your highscore is {highscore} points");
+                            }
+                        }
                     }
                     ch.PressKeyToContinue();
-
                 }
-
             }
-
             Console.WriteLine();
-
         }
     }
 }

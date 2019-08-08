@@ -17,6 +17,8 @@ namespace CardGame
         ConsoleHelper ch = new ConsoleHelper();
         public static User currentUser = new User() { Username = "Tester", Password = "UnKnown", AccountCreationDate = DateTime.Now };
 
+        public static bool isLoggedIn = false;
+
         public MainApp()
         {
         }
@@ -36,6 +38,7 @@ namespace CardGame
                 Console.WriteLine("c) Display username and password");
                 Console.WriteLine("d) Create new account");
                 Console.WriteLine("f) Play a game");
+                Console.WriteLine("g) Show hiscores");
 
                 Console.WriteLine("x) Quit");
 
@@ -60,6 +63,9 @@ namespace CardGame
                     case ConsoleKey.F:
                         PlayGameMenu();
                         break;
+                    case ConsoleKey.G:
+                        HiscoreMenu();
+                        break;
                     case ConsoleKey.X:
                         Console.Clear();
                         Console.WriteLine("Are you sure you want to quit? [Y/N]");
@@ -81,6 +87,53 @@ namespace CardGame
             }
             
 
+        }
+
+        private void HiscoreMenu()
+        {
+            Console.Clear();
+            bool done = false;
+
+            while (!done)
+            {
+                Console.WriteLine("For which game do you want to show the hiscore?");
+
+                Console.WriteLine();
+                Console.WriteLine("1) HigherOrLower");
+                Console.WriteLine("x) Exit menu");
+
+
+                ConsoleKey key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.D1:
+                        ShowHiscore(HigherOrLower.GameId);
+                        Console.WriteLine();
+                        ch.PressKeyToContinue();
+                        Console.Clear();
+                        break;
+                    case ConsoleKey.X:
+                        done = true;
+                        Console.Clear();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        private void ShowHiscore(int gameId)
+        {
+            Console.Clear();
+            List<UserScore> hiscore = dataAccess.GetHighScores(gameId);
+            Console.WriteLine("Rank".PadRight(5) + "Username".PadRight(20) + "Score");
+            int counter = 1;
+            foreach (var score in hiscore)
+            {
+                Console.WriteLine(counter.ToString().PadRight(5) + score.User.Username.PadRight(20) + score.Score);
+                counter++;
+            }
         }
 
         private void CreateNewAccount()
@@ -121,7 +174,7 @@ namespace CardGame
             }
         }
 
-        // FUNCTIONAL Make CheckIfValidPassword(string password)-method
+        // FUNCTIONAL Make CheckIfValidPassword(string password)-method (Perhaps also CheckIfValidUserName(string userName))
         private string CreatePassword(string userName)
         {
             string passWord = "";
@@ -196,6 +249,7 @@ namespace CardGame
             ch.PressKeyToContinue();
         }
 
+        // DONE
         private void LoginScreen()
         {
             string userName;
@@ -204,6 +258,10 @@ namespace CardGame
             Console.Clear();
             Console.Write("Username: ");
             userName = Console.ReadLine();
+            if (userName == "")
+            {
+                return;
+            }
 
             while (true)
             {
@@ -231,10 +289,31 @@ namespace CardGame
                     passWord = passWord + key.ToString();
                 }
             }
-
-            bool done = false;
-
-           
+            Console.WriteLine();
+            if (dataAccess.IsCredentialsValid(userName, passWord))
+            {
+                currentUser = dataAccess.GetUserByUsername(userName);
+                isLoggedIn = true;
+                ch.Green("Login successful");
+                Console.WriteLine();
+                ch.PressKeyToContinue();
+            }
+            else
+            {
+                if (dataAccess.DoesUserExist(userName))
+                {
+                    ch.Red("Invalid password");
+                    Console.WriteLine();
+                    ch.PressKeyToContinue();
+                }
+                else
+                {
+                    ch.Red($"Username \"{userName}\" does not exist");
+                    Console.WriteLine();
+                    ch.PressKeyToContinue();
+                }
+                LoginScreen();
+            }
         }
 
         // FUNCTIONAL

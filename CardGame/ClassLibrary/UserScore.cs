@@ -8,15 +8,14 @@ namespace CardGame.ClassLibrary
 {
     public class UserScore
     {
+        [Key]
+        public int Id { get; set; }
+
         [Required]
-        [ForeignKey("User")]
-        [Column(Order=1)]
         public int UserId { get; set; }
         public User User { get; set; }
 
         [Required]
-        [Key]
-        [Column(Order = 2)]
         public int GameId { get; set; }
         public int Score { get; set; }
     }

@@ -328,7 +328,7 @@ namespace CardGame
                 Console.WriteLine("Which game do you want to play?");
 
                 Console.WriteLine("a) Higher or Lower");
-                Console.WriteLine("b) Tian (Not implemented)");
+                Console.WriteLine("b) Turning ten");
 
                 Console.WriteLine("x) Back to main menu");
 
@@ -342,6 +342,8 @@ namespace CardGame
                         higherOrLower.Run();
                         break;
                     case ConsoleKey.B:
+                        TurningTen turningTen = new TurningTen();
+                        turningTen.Run();
                         break;
                     case ConsoleKey.C:
                         break;

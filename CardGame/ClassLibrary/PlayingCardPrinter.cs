@@ -39,7 +39,14 @@ namespace CardGame.ClassLibrary
             //Print top
             foreach (var card in cards)
             {
-                Console.Write($"_____".PadRight(6));
+                if (card.IsEmptyCard)
+                {
+                    Console.Write($"     ".PadRight(6));
+                }
+                else
+                {
+                    Console.Write($"_____".PadRight(6));
+                }
             }
             ch.BlankLine();
 
@@ -47,117 +54,146 @@ namespace CardGame.ClassLibrary
 
             foreach (var card in cards)
             {
-                string spades = "\u2660";
-                string clubs = "\u2663";
-                string hearts = "\u2665";
-                string diamonds = "\u2666";
-
-                string suit = " ";
-                switch (card.Suit.ToString())
+                if (card.IsEmptyCard)
                 {
-                    case "Spades":
-                        suit = spades;
-                        break;
-                    case "Clubs":
-                        suit = clubs;
-                        break;
-                    case "Hearts":
-                        suit = hearts;
-                        break;
-                    case "Diamonds":
-                        suit = diamonds;
-                        break;
-                    default:
-                        break;
-                }
-
-                Console.Write($"|");
-
-                if (card.Suit.ToString() == "Spades" || card.Suit.ToString() == "Clubs")
-                {
-                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.Write($"     ".PadRight(6));
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    string spades = "\u2660";
+                    string clubs = "\u2663";
+                    string hearts = "\u2665";
+                    string diamonds = "\u2666";
+
+                    string suit = " ";
+                    switch (card.Suit.ToString())
+                    {
+                        case "Spades":
+                            suit = spades;
+                            break;
+                        case "Clubs":
+                            suit = clubs;
+                            break;
+                        case "Hearts":
+                            suit = hearts;
+                            break;
+                        case "Diamonds":
+                            suit = diamonds;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    Console.Write($"|");
+
+                    if (card.Suit.ToString() == "Spades" || card.Suit.ToString() == "Clubs")
+                    {
+                        Console.ForegroundColor = ConsoleColor.Black;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+                    Console.Write($"{suit}  ");
+                    ch.ResetColor();
+                    Console.Write($"|".PadRight(2));
                 }
-                Console.Write($"{suit}  ");
-                ch.ResetColor();
-                Console.Write($"|".PadRight(2));
             }
             ch.BlankLine();
 
             foreach (var card in cards)
             {
-                string value = " ";
-                switch (card.Value.ToString())
+                if (card.IsEmptyCard)
                 {
-                    case "Ace":
-                        value = "A";
-                        break;
-                    case "King":
-                        value = "K";
-                        break;
-                    case "Queen":
-                        value = "Q";
-                        break;
-                    case "Jack":
-                        value = "J";
-                        break;
-                    default:
-                        value = ((int)card.Value).ToString();
-                        break;
-                }
-
-                Console.Write($"| {value.PadRight(2)}|".PadRight(6));
-            }
-            ch.BlankLine();
-
-            foreach (var card in cards)
-            {
-                string spades = "\u2660";
-                string clubs = "\u2663";
-                string hearts = "\u2665";
-                string diamonds = "\u2666";
-
-                string suit = "";
-                switch (card.Suit.ToString())
-                {
-                    case "Spades":
-                        suit = spades;
-                        break;
-                    case "Clubs":
-                        suit = clubs;
-                        break;
-                    case "Hearts":
-                        suit = hearts;
-                        break;
-                    case "Diamonds":
-                        suit = diamonds;
-                        break;
-                    default:
-                        break;
-                }
-
-                Console.Write($"|");
-
-                if (card.Suit.ToString() == "Spades" || card.Suit.ToString() == "Clubs")
-                {
-                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.Write($"     ".PadRight(6));
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
+                    string value = " ";
+                    switch (card.Value.ToString())
+                    {
+                        case "Ace":
+                            value = "A";
+                            break;
+                        case "King":
+                            value = "K";
+                            break;
+                        case "Queen":
+                            value = "Q";
+                            break;
+                        case "Jack":
+                            value = "J";
+                            break;
+                        default:
+                            value = ((int)card.Value).ToString();
+                            break;
+                    }
+                    Console.Write($"| {value.PadRight(2)}|".PadRight(6));
                 }
-                Console.Write($"  {suit}");
-                ch.ResetColor();
-                Console.Write($"|".PadRight(2));
             }
             ch.BlankLine();
 
             foreach (var card in cards)
             {
-                Console.Write($"‾‾‾‾‾".PadRight(6));
+                if (card.IsEmptyCard)
+                {
+                    Console.Write($"     ".PadRight(6));
+                }
+                else
+                {
+                    string spades = "\u2660";
+                    string clubs = "\u2663";
+                    string hearts = "\u2665";
+                    string diamonds = "\u2666";
+
+                    string suit = "";
+                    switch (card.Suit.ToString())
+                    {
+                        case "Spades":
+                            suit = spades;
+                            break;
+                        case "Clubs":
+                            suit = clubs;
+                            break;
+                        case "Hearts":
+                            suit = hearts;
+                            break;
+                        case "Diamonds":
+                            suit = diamonds;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    Console.Write($"|");
+
+                    if (card.Suit.ToString() == "Spades" || card.Suit.ToString() == "Clubs")
+                    {
+                        Console.ForegroundColor = ConsoleColor.Black;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+                    Console.Write($"  {suit}");
+                    ch.ResetColor();
+                    Console.Write($"|".PadRight(2));
+                }
+                
+            }
+            ch.BlankLine();
+
+            foreach (var card in cards)
+            {
+                if (card.IsEmptyCard)
+                {
+                    Console.Write($"     ".PadRight(6));
+                }
+                else
+                {
+                    Console.Write($"‾‾‾‾‾".PadRight(6));
+
+                }
             }
             ch.BlankLine();
         }

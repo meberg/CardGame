@@ -6,9 +6,12 @@ namespace CardGame
 {
     public class PlayingCard
     {
+
         public Suit Suit { get; private set; }
         public Value Value { get; private set; }
         public bool IsVisible { get; set; }
+
+        public bool IsEmptyCard { get; set; }
 
         //public string[] CardAppearence { get; private set; }
 

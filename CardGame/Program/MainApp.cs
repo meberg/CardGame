@@ -15,7 +15,7 @@ namespace CardGame
         DataAccess dataAccess = new DataAccess();
 
         ConsoleHelper ch = new ConsoleHelper();
-        public static User currentUser = new User() { Username = "Tester", Password = "UnKnown", AccountCreationDate = DateTime.Now };
+        public static User currentUser = new User() { Username = "No user is logged in", Password = "", AccountCreationDate = DateTime.Now };
 
         public static bool isLoggedIn = false;
 
@@ -34,7 +34,7 @@ namespace CardGame
                 Console.WriteLine("What do you want to do?");
 
                 Console.WriteLine("a) Log in");
-                Console.WriteLine("b) Log out (Not implemented)");
+                Console.WriteLine("b) Log out");
                 Console.WriteLine("c) Display username and password");
                 Console.WriteLine("d) Create new account");
                 Console.WriteLine("f) Play a game");
@@ -51,6 +51,7 @@ namespace CardGame
                         LoginScreen();
                         break;
                     case ConsoleKey.B:
+                        Logout();
                         break;
                     case ConsoleKey.C:
                         DisplayAccountInfo();
@@ -89,6 +90,89 @@ namespace CardGame
 
         }
 
+        private void LoginScreen()
+        {
+            string userName;
+            string passWord = "";
+
+            Console.Clear();
+            Console.Write("Username: ");
+            userName = Console.ReadLine();
+            if (userName == "")
+            {
+                return;
+            }
+
+            while (true)
+            {
+                Console.Clear();
+                Console.Write("Username: ");
+                Console.WriteLine(userName);
+                Console.Write("Password: ");
+                foreach (var letter in passWord)
+                {
+                    Console.Write("*");
+                }
+
+                char key = Console.ReadKey(true).KeyChar;
+
+                if (key == 13)
+                {
+                    break;
+                }
+                if (key == 8)
+                {
+                    passWord = passWord.Substring(0, passWord.Length - 1);
+                }
+                else
+                {
+                    passWord = passWord + key.ToString();
+                }
+            }
+            Console.WriteLine();
+            if (dataAccess.IsCredentialsValid(userName, passWord))
+            {
+                currentUser = dataAccess.GetUserByUsername(userName);
+                isLoggedIn = true;
+                ch.Green("Login successful");
+                Console.WriteLine();
+                ch.PressKeyToContinue();
+            }
+            else
+            {
+                if (dataAccess.DoesUserExist(userName))
+                {
+                    ch.Red("Invalid password");
+                    Console.WriteLine();
+                    ch.PressKeyToContinue();
+                }
+                else
+                {
+                    ch.Red($"Username \"{userName}\" does not exist");
+                    Console.WriteLine();
+                    ch.PressKeyToContinue();
+                }
+                LoginScreen();
+            }
+        }
+
+        private void Logout()
+        {
+            Console.Clear();
+            Console.WriteLine($"{currentUser.Username} has been logged out");
+            currentUser = new User() { Username = "No user is logged in", Password = "", AccountCreationDate = DateTime.Now };
+            ch.PressKeyToContinue();
+        }
+
+        private void DisplayAccountInfo()
+        {
+            Console.Clear();
+            Console.WriteLine("Username: " + currentUser?.Username);
+            Console.WriteLine("Password: " + currentUser?.Password);
+            Console.WriteLine($"Account created: {currentUser?.AccountCreationDate:F}");
+            ch.PressKeyToContinue();
+        }
+
         private void HiscoreMenu()
         {
             Console.Clear();
@@ -100,6 +184,8 @@ namespace CardGame
 
                 Console.WriteLine();
                 Console.WriteLine("1) HigherOrLower");
+                Console.WriteLine("2) Snake 2");
+                Console.WriteLine("3) Psychadelic snake");
                 Console.WriteLine("x) Exit menu");
 
 
@@ -109,6 +195,18 @@ namespace CardGame
                 {
                     case ConsoleKey.D1:
                         ShowHiscore(HigherOrLower.GameId);
+                        Console.WriteLine();
+                        ch.PressKeyToContinue();
+                        Console.Clear();
+                        break;
+                    case ConsoleKey.D2:
+                        ShowHiscore(Snake.GameId);
+                        Console.WriteLine();
+                        ch.PressKeyToContinue();
+                        Console.Clear();
+                        break;
+                    case ConsoleKey.D3:
+                        ShowHiscore(Snake.GameIdPsych);
                         Console.WriteLine();
                         ch.PressKeyToContinue();
                         Console.Clear();
@@ -125,7 +223,11 @@ namespace CardGame
 
         private void ShowHiscore(int gameId)
         {
+            string[] gameNames = { "none", "HigherOrLower", "Snake 2", "Psychadelic snake" };
+
             Console.Clear();
+            ch.Menu(gameNames[gameId]);
+
             List<UserScore> hiscore = dataAccess.GetHighScores(gameId);
             Console.WriteLine("Rank".PadRight(5) + "Username".PadRight(20) + "Score");
             int counter = 1;
@@ -174,7 +276,6 @@ namespace CardGame
             }
         }
 
-        // FUNCTIONAL Make CheckIfValidPassword(string password)-method (Perhaps also CheckIfValidUserName(string userName))
         private string CreatePassword(string userName)
         {
             string passWord = "";
@@ -209,7 +310,6 @@ namespace CardGame
             return passWord;
         }
 
-        // DONE
         private string CreateUsername()
         {
             bool invalidUsername = true;
@@ -239,84 +339,6 @@ namespace CardGame
             return userName;
         }
 
-        // DONE
-        private void DisplayAccountInfo()
-        {
-            Console.Clear();
-            Console.WriteLine("Username: " + currentUser?.Username);
-            Console.WriteLine("Password: " + currentUser?.Password);
-            Console.WriteLine($"Account created: {currentUser?.AccountCreationDate:F}");
-            ch.PressKeyToContinue();
-        }
-
-        // DONE
-        private void LoginScreen()
-        {
-            string userName;
-            string passWord = "";
-
-            Console.Clear();
-            Console.Write("Username: ");
-            userName = Console.ReadLine();
-            if (userName == "")
-            {
-                return;
-            }
-
-            while (true)
-            {
-                Console.Clear();
-                Console.Write("Username: ");
-                Console.WriteLine(userName);
-                Console.Write("Password: ");
-                foreach (var letter in passWord)
-                {
-                    Console.Write("*");
-                }
-
-                char key = Console.ReadKey(true).KeyChar;
-                
-                if (key == 13)
-                {
-                    break;
-                }
-                if (key == 8)
-                {
-                    passWord = passWord.Substring(0, passWord.Length - 1);
-                }
-                else
-                {
-                    passWord = passWord + key.ToString();
-                }
-            }
-            Console.WriteLine();
-            if (dataAccess.IsCredentialsValid(userName, passWord))
-            {
-                currentUser = dataAccess.GetUserByUsername(userName);
-                isLoggedIn = true;
-                ch.Green("Login successful");
-                Console.WriteLine();
-                ch.PressKeyToContinue();
-            }
-            else
-            {
-                if (dataAccess.DoesUserExist(userName))
-                {
-                    ch.Red("Invalid password");
-                    Console.WriteLine();
-                    ch.PressKeyToContinue();
-                }
-                else
-                {
-                    ch.Red($"Username \"{userName}\" does not exist");
-                    Console.WriteLine();
-                    ch.PressKeyToContinue();
-                }
-                LoginScreen();
-            }
-        }
-
-        // FUNCTIONAL
         private void PlayGameMenu()
         {
             bool keepGoing = true;
@@ -328,7 +350,9 @@ namespace CardGame
                 Console.WriteLine("Which game do you want to play?");
 
                 Console.WriteLine("a) Higher or Lower");
-                Console.WriteLine("b) Turning ten");
+                Console.WriteLine("b) Turning ten (Not implemented)");
+                Console.WriteLine("c) Snake");
+
 
                 Console.WriteLine("x) Back to main menu");
 
@@ -346,6 +370,7 @@ namespace CardGame
                         turningTen.Run();
                         break;
                     case ConsoleKey.C:
+                        Snake.Run();
                         break;
                     case ConsoleKey.D:
                         break;

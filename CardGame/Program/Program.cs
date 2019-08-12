@@ -11,10 +11,8 @@ namespace CardGame
     {
         static void Main(string[] args)
         {
-            Snake.Run();
-
-            //MainApp app = new MainApp();
-            //app.Run();
+            MainApp app = new MainApp();
+            app.Run();
         }
     }
 }

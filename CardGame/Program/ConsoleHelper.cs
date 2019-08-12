@@ -67,5 +67,11 @@ namespace CardGame
 
 
         }
+
+        internal void WindowSize(int width, int height)
+        {
+            Console.WindowWidth = width;
+            Console.WindowHeight = height;
+        }
     }
 }

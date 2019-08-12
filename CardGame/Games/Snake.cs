@@ -1,4 +1,5 @@
-﻿using CardGame.Data;
+﻿using CardGame.ClassLibrary;
+using CardGame.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,8 @@ namespace CardGame.Games
         static int windowWidth = 60;
 
         static int score = 0;
+        static int loops = 0;
+        static List<decimal> timePerFoodList = new List<decimal>();
 
         static int currentXCoordinate = 8;
         static int currentXDirection = 0;
@@ -53,9 +56,11 @@ namespace CardGame.Games
 
             while (keepGoing)
             {
+                ch.ResetColor();
                 Console.Clear();
 
-                ch.Menu($"Welcome to Snake {MainApp.currentUser}!");
+                string userName = MainApp.isLoggedIn ? " " + MainApp.currentUser.Username : "";
+                ch.Menu($"Welcome to Snake{userName}!");
                 ch.BlankLine(2);
 
                 Console.WriteLine("What do you want to do?");
@@ -72,11 +77,11 @@ namespace CardGame.Games
                 {
                     case ConsoleKey.A:
                         psychadelicGame = false;
-                        StartGame();
+                        GamePlay();
                         break;
                     case ConsoleKey.B:
                         psychadelicGame = true;
-                        StartGame();
+                        GamePlay();
                         break;
                     case ConsoleKey.C:
                         break;
@@ -95,15 +100,24 @@ namespace CardGame.Games
             }
         }
 
-        private static void StartGame()
+        private static void GamePlay()
         {
-            ResetValues();
-
             bool continuePlaying = true;
 
             while (continuePlaying)
             {
-                RunGame();
+                ResetStartValues();
+
+                try
+                {
+                    RunGame();
+                }
+                catch (Exception e)
+                {
+                    UpdateHiscore();
+                    Console.WriteLine(e.Message);
+                    ch.PressKeyToContinue();
+                }
                 GameOver();
                 Console.Clear();
                 Console.WriteLine("Play again? [Y/N]");
@@ -116,11 +130,12 @@ namespace CardGame.Games
                 else if (key == ConsoleKey.N)
                 {
                     continuePlaying = false;
+                    ch.WindowSize(120, 30);
                 }
             }
         }
 
-        private static void ResetValues()
+        private static void ResetStartValues()
         {
             gameOver = false;
             windowHeight = 20;
@@ -161,10 +176,11 @@ namespace CardGame.Games
                     }
                     else
                     {
-                        PrintGameArea();
+                        PrintGameAreaNew();
                     }
                     ContinueInCurrentDirection();
                     Thread.Sleep(100 - score * 2);
+                    loops++;
                     if (gameOver)
                     {
                         break;
@@ -181,45 +197,59 @@ namespace CardGame.Games
         private static void GameOver()
         {
             Console.Clear();
+            ch.WindowSize(120, 30);
             Console.WriteLine("Game over!");
             Console.WriteLine($"You got {score} points!");
 
+            decimal timePerFood = decimal.Parse($"{timePerFoodList.Average() / 1000:0.00}");
+            Console.WriteLine($"Your time per food was {timePerFood} seconds");
+
             if (MainApp.isLoggedIn)
             {
-                if (psychadelicGame)
-                {
-                    int highscore = dataAccess.GetHighScore(MainApp.currentUser, GameIdPsych);
-
-                    if (score > highscore)
-                    {
-                        dataAccess.SetNewHighscore(score, MainApp.currentUser, GameIdPsych);
-                        Console.WriteLine();
-                        Console.WriteLine($"New highscore! Your previous highscore was {highscore} points.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Too bad, you didn't beat your highscore. Your highscore is {highscore} points");
-                    }
-                }
-                else
-                {
-                    int highscore = dataAccess.GetHighScore(MainApp.currentUser, GameId);
-
-                    if (score > highscore)
-                    {
-                        dataAccess.SetNewHighscore(score, MainApp.currentUser, GameId);
-                        Console.WriteLine();
-                        Console.WriteLine($"New highscore! Your previous highscore was {highscore} points.");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Too bad, you didn't beat your highscore. Your highscore is {highscore} points");
-                    }
-                }
+                UpdateHiscore();
             }
 
             Console.WriteLine("Press enter to continue");
             Console.ReadLine();
+        }
+
+        private static void UpdateHiscore()
+        {
+            int presentGameId = 2;
+
+            if (psychadelicGame)
+            {
+                presentGameId = 3;
+            }
+
+            decimal timePerFood = decimal.Parse($"{timePerFoodList.Average() / 1000:0.00}");
+
+            UserScore userScore = dataAccess.GetUserScore(MainApp.currentUser, presentGameId);
+            int scoreHiscore = userScore.Score;
+            decimal timePerFoodHiscore = userScore.TimePerFood;
+
+            if (score > scoreHiscore)
+            {
+                userScore.Score = score;
+                userScore.TimePerFood = timePerFood;
+                dataAccess.UpdateUserScore(userScore);
+                Console.WriteLine();
+                Console.WriteLine($"New highscore! Your previous highscore was {scoreHiscore} points.");
+            }
+            else
+            {
+                if (score == scoreHiscore && timePerFood > timePerFoodHiscore)
+                {
+                    dataAccess.UpdateUserScore(userScore);
+                    Console.WriteLine();
+                    Console.WriteLine($"New accuracy! Your previous accuracy was {timePerFoodHiscore} seconds");
+                }
+                else
+                {
+                    Console.WriteLine($"Too bad, you didn't beat your highscore. Your highscore is {scoreHiscore} points.");
+                    Console.WriteLine($"Your accuracy is {timePerFoodHiscore} seconds");
+                }
+            }
         }
 
         private static void AddFoodLocation()
@@ -278,6 +308,8 @@ namespace CardGame.Games
             {
                 NewFoodLocation();
                 score++;
+                timePerFoodList.Add((100 - score * 2) * loops);
+                loops = 0;
             }
             else
             {
@@ -359,7 +391,85 @@ namespace CardGame.Games
             }
         }
 
-        private static void PrintGameArea()
+        private static void PrintGameAreaPsychadelic()
+        {
+            List<Tuple<int, int>> tempList = coordinateList.OrderBy(a => a.Item2).ThenBy(b => b.Item1).ToList();
+
+            for (int i = 0; i < tempList.Count; i++)
+            {
+                int numberOfLines = i == 0 ? tempList[i].Item2 : tempList[i].Item2 - tempList[i - 1].Item2;
+                int numberOfSpaces = i == 0 || numberOfLines != 0 ? tempList[i].Item1 : tempList[i].Item1 - tempList[i - 1].Item1;
+
+                ch.BlankLine(numberOfLines);
+                StringBuilder sb = new StringBuilder();
+                sb.Append(' ', numberOfSpaces);
+                Console.Write(sb);
+
+                if (coordinateList.IndexOf(new Tuple<int, int>(tempList[i].Item1, tempList[i].Item2)) == 0)
+                {
+                    Console.BackgroundColor = ConsoleColor.Yellow;
+                    Console.Write("  ");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.Write("  ");
+                    Console.ResetColor();
+                }
+            }
+        }
+
+        private static void PrintGameAreaNew()
+        {
+            List<Tuple<int, int>> tempList = coordinateList.OrderBy(a => a.Item2).ThenBy(b => b.Item1).ToList();
+            try
+            {
+
+                for (int i = 0; i < tempList.Count; i++)
+                {
+                    int numberOfLines = i == 0 ? tempList[i].Item2 : tempList[i].Item2 - tempList[i - 1].Item2;
+                    int numberOfSpaces = i == 0 || numberOfLines != 0 ? tempList[i].Item1 : tempList[i].Item1 - tempList[i - 1].Item1 - 2;
+
+                    // If number of spaces is less than 0, that means that the food is inside the snake - then don't print the snake where it overlaps the food.
+                    if (!(numberOfSpaces < 0))
+                    {
+                        ch.BlankLine(numberOfLines);
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append(' ', numberOfSpaces);
+                        Console.Write(sb);
+
+                        if (coordinateList.IndexOf(new Tuple<int, int>(tempList[i].Item1, tempList[i].Item2)) == 0)
+                        {
+                            Console.BackgroundColor = ConsoleColor.Yellow;
+                            Console.Write("  ");
+                            Console.ResetColor();
+                        }
+                        else
+                        {
+                            Console.BackgroundColor = ConsoleColor.White;
+                            Console.Write("  ");
+                            Console.ResetColor();
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Clear();
+                for (int i = 0; i < tempList.Count; i++)
+                {
+                    Console.WriteLine("Y: " + tempList[i].Item2 + "X: " + tempList[i].Item1);
+                }
+                Console.WriteLine();
+                Console.WriteLine(e.Message);
+                Console.ReadLine();
+                throw;
+            }
+            
+        }
+
+        private static void PrintGameAreaOld()
         {
             List<Tuple<int, int>> tempList = coordinateList.OrderBy(a => a.Item2).ThenBy(b => b.Item1).ToList();
             int currentIndex = 0;
@@ -412,64 +522,5 @@ namespace CardGame.Games
 
             }
         }
-
-        private static void PrintGameAreaPsychadelic()
-        {
-            List<Tuple<int, int>> tempList = coordinateList.OrderBy(a => a.Item2).ThenBy(b => b.Item1).ToList();
-
-            for (int i = 0; i < tempList.Count; i++)
-            {
-                int numberOfLines = i == 0 ? tempList[i].Item2 : tempList[i].Item2 - tempList[i - 1].Item2;
-                int numberOfSpaces = i == 0 || numberOfLines != 0 ? tempList[i].Item1 : tempList[i].Item1 - tempList[i - 1].Item1;
-
-                ch.BlankLine(numberOfLines);
-                StringBuilder sb = new StringBuilder();
-                sb.Append(' ', numberOfSpaces);
-                Console.Write(sb);
-
-                if (coordinateList.IndexOf(new Tuple<int, int>(tempList[i].Item1, tempList[i].Item2)) == 0)
-                {
-                    Console.BackgroundColor = ConsoleColor.Yellow;
-                    Console.Write("  ");
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.Write("  ");
-                    Console.ResetColor();
-                }
-            }
-        }
-
-        private static void PrintGameAreaTest()
-        {
-            List<Tuple<int, int>> tempList = coordinateList.OrderBy(a => a.Item2).ThenBy(b => b.Item1).ToList();
-
-            for (int i = 0; i < tempList.Count; i++)
-            {
-                int numberOfLines = i == 0 ? tempList[i].Item2 : tempList[i].Item2 - tempList[i - 1].Item2;
-                int numberOfSpaces = i == 0 || numberOfLines != 0 ? tempList[i].Item1 : tempList[i].Item1 - tempList[i - 1].Item1;
-
-                ch.BlankLine(numberOfLines);
-                StringBuilder sb = new StringBuilder();
-                sb.Append(' ', numberOfSpaces);
-                Console.Write(sb);
-
-                if (coordinateList.IndexOf(new Tuple<int, int>(tempList[i].Item1, tempList[i].Item2)) == 0)
-                {
-                    Console.BackgroundColor = ConsoleColor.Yellow;
-                    Console.Write("  ");
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.Write("  ");
-                    Console.ResetColor();
-                }
-            }
-        }
-
     }
 }

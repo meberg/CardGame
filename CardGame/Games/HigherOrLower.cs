@@ -176,11 +176,13 @@ namespace CardGame.Games
 
                         if (MainApp.isLoggedIn)
                         {
-                            int highscore = dataAccess.GetHighScore(MainApp.currentUser, GameId);
+                            UserScore userScore = dataAccess.GetUserScore(MainApp.currentUser, GameId);
+                            int highscore = userScore.Score;
 
                             if (score > highscore)
                             {
-                                dataAccess.SetNewHighscore(score, MainApp.currentUser, GameId);
+                                userScore.Score = score;
+                                dataAccess.UpdateUserScore(userScore);
                                 Console.WriteLine();
                                 Console.WriteLine($"New highscore! Your previous highscore was {highscore} points.");
                             }

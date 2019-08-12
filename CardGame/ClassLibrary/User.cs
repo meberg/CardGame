@@ -15,14 +15,6 @@ namespace CardGame.ClassLibrary
         [Required]
         public DateTime AccountCreationDate { get; set; }
         public decimal NumberOfHoursPlayed { get; set; }
-
-        //public User(string aUsername, string aPassword, int aAge)
-        //{
-        //    Username = aUsername;
-        //    Password = aPassword;
-        //    Age = aAge;
-        //    AccountCreationDate = DateTime.Now;
-        //}
     }
 
 

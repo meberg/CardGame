@@ -21,7 +21,7 @@ namespace CardGame.Data
             List<string> userNames = new List<string>();
             foreach (var user in context.Users.ToList())
             {
-                userNames.Add(user.Username.ToLower());
+                userNames.Add(user.Username.Trim().ToLower());
             }
             return userNames;
         }
@@ -42,7 +42,7 @@ namespace CardGame.Data
         public User CreateUser(string userName, string passWord)
         {
             User user = new User();
-            user.Username = userName;
+            user.Username = userName.Trim().ToLower();
             user.Password = passWord;
             user.AccountCreationDate = DateTime.Now;
             context.Users.Add(user);
@@ -70,32 +70,37 @@ namespace CardGame.Data
             return false;
         }
 
-        internal int GetHighScore(User currentUser, int gameId)
-        {
-            UserScore userScore = context.UserScores.SingleOrDefault(a => a.GameId == gameId && a.UserId == currentUser.Id);
-
-            if (userScore is null)
-            {
-                UserScore userScore1 = new UserScore();
-                userScore1.GameId = gameId;
-                userScore1.UserId = currentUser.Id;
-                userScore1.Score = 0;
-                context.UserScores.Add(userScore1);
-                context.SaveChanges();
-            }
-            return context.UserScores.SingleOrDefault(a => a.GameId == gameId && a.UserId == currentUser.Id).Score;
-        }
-
-        internal void SetNewHighscore(int score, User currentUser, int gameId)
-        {
-            context.UserScores.SingleOrDefault(a => a.GameId == gameId && a.UserId == currentUser.Id).Score = score;
-            context.SaveChanges();
-        }
-
-        internal List<UserScore> GetHighScores(int gameId)
+        internal List<UserScore> GetUserScores(int gameId)
         {
             List<UserScore> highScoreList = context.UserScores.Where(a => a.GameId == gameId).Include(a => a.User).ToList();
             return highScoreList.OrderByDescending(a => a.Score).ToList();
+        }
+
+        internal void DeleteUser(string userName)
+        {
+            User user = GetUserByUsername(userName.Trim().ToLower());
+            context.Remove(user);
+            context.SaveChanges();
+        }
+
+        internal UserScore GetUserScore(User currentUser, int gameId)
+        {
+            List<UserScore> userScores = GetUserScores(gameId);
+            if (!userScores.Exists(a => a.UserId == currentUser.Id && a.GameId == gameId))
+            {
+                UserScore userScore = new UserScore();
+                userScore.UserId = currentUser.Id;
+                userScore.GameId = gameId;
+                context.UserScores.Add(userScore);
+                context.SaveChanges();
+            }
+            return context.UserScores.SingleOrDefault(a => a.User == currentUser && a.GameId == gameId);
+        }
+
+        internal void UpdateUserScore(UserScore userScore)
+        {
+            context.UserScores.Update(userScore);
+            context.SaveChanges();
         }
     }
 }
